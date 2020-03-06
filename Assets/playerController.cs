@@ -10,6 +10,9 @@ public class playerController : MonoBehaviour
     private Vector3 m_CamForward;
     private Vector3 m_Move;
     public float speedRotation=3f;
+    public float jump_force=12f;
+    public float groundCheckDistance=0.15f;
+    public bool is_Grounded=false;
     private Rigidbody body;
     // Start is called before the first frame update
     void Start()
@@ -19,12 +22,11 @@ public class playerController : MonoBehaviour
         body=GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    void FixedUpdate(){
         //almacenamos la entrada del teclado/mando/telefono
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
+
         //verificamos si la camara esta asociada al componente
         if(cam != null){
             //multiplicamos el vector frontal de la camara
@@ -34,14 +36,47 @@ public class playerController : MonoBehaviour
             //si no hay una camara vinculada al personaje usaremos los ejes del mundo
             m_Move = v * Vector3.forward + h * Vector3.right;
         }
+        //Leemos la tacla espacio por si el jugador quiere saltar
+        if(Input.GetKeyDown(KeyCode.Space) && is_Grounded){
+            //body.velocity= new Vector3(body.velocity.x,jump_force,body.velocity.z);
+            body.AddForce(0,jump_force,0);
+        }
         //enviamos el vector de movimiento a la funcion move
         Move(m_Move);
     }
 
     void Move(Vector3 move){
-        //aplicamos el movimiento sobre el jugador
-        body.velocity = move;
-        //rotamos el personaje en la direccion del movimiento empleando interpolacion esferica
-        transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(move),Time.deltaTime*speedRotation);
+        
+        
+        //aplicamos la velocidad en X y en Z pero conservamos su velocidad en Y para la gravedad
+        body.velocity = new Vector3(move.x,body.velocity.y,move.z);
+        /*comprobamos si el personaje esta moviendose 
+        en alguna direccion evitando que regrese al angulo 
+        original de la camara en caso de estar inactivo*/
+        if(move.magnitude>0){
+            //rotamos el personaje en la direccion del movimiento empleando interpolacion esferica
+            transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(move),Time.deltaTime*speedRotation);
+        }
+        CheckGroundStatus();
+        Debug.Log(is_Grounded);
+    }
+
+    //Nos ayuda a validar si el jugador está en contacto con el piso
+    void CheckGroundStatus(){
+        //creamos un raycast para saber si nuestro personaje esta en contacto con el suelo
+        RaycastHit hitInfo;
+        #if UNITY_EDITOR
+            //Debug.DrawLine(transform.position + (Vector3.up*0.1f), transform.position + (Vector3.up*0.1f)+ (Vector3.down*groundCheckDistance));
+            Debug.DrawLine(transform.position + (Vector3.up*0.1f), transform.position+Vector3.down +(Vector3.down*0.1f));
+        
+        #endif
+        if(Physics.Raycast(transform.position + Vector3.down +(Vector3.up*0.1f), Vector3.down, out hitInfo, groundCheckDistance) ){
+            
+            is_Grounded = true;
+
+        }else{
+            is_Grounded=false;
+        }
+        
     }
 }
