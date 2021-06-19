@@ -10,7 +10,7 @@ public class playerController : MonoBehaviour
     private Vector3 m_CamForward;
     private Vector3 m_Move;
     public float speedRotation=3f;
-    public float jump_force=12f;
+    public float jump_force=10f;
     public float groundCheckDistance=0.15f;
     public bool is_Grounded=false;
     private Rigidbody body;
@@ -32,7 +32,8 @@ public class playerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && is_Grounded)
         {
             //body.velocity= new Vector3(body.velocity.x,jump_force,body.velocity.z);
-            body.AddForce(body.velocity.x, body.velocity.y + jump_force, body.velocity.z);
+            body.AddForce(body.velocity.x, body.velocity.y + jump_force, body.velocity.z,ForceMode.Impulse);
+            
         }
     }
 
@@ -62,7 +63,7 @@ public class playerController : MonoBehaviour
         en alguna direccion evitando que regrese al angulo 
         original de la camara en caso de estar inactivo*/
         if(move.magnitude>0){
-            //rotamos el personaje en la direccion del movimiento empleando interpolacion esferica
+            //rotamos el personaje en la direccion de la camara o el mundo empleando interpolacion esferica
             transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(move),Time.deltaTime*speedRotation);
         }
         CheckGroundStatus();
