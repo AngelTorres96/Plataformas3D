@@ -14,6 +14,7 @@ public class playerController : MonoBehaviour
     public float groundCheckDistance=0.15f;
     public bool is_Grounded=false;
     private Rigidbody body;
+    private float h, v;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,10 +23,21 @@ public class playerController : MonoBehaviour
         body=GetComponent<Rigidbody>();
     }
 
-    void FixedUpdate(){
+    private void Update()
+    {
         //almacenamos la entrada del teclado/mando/telefono
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
+        h = Input.GetAxis("Horizontal");
+        v = Input.GetAxis("Vertical");
+        //Leemos la tacla espacio por si el jugador quiere saltar
+        if (Input.GetKeyDown(KeyCode.Space) && is_Grounded)
+        {
+            //body.velocity= new Vector3(body.velocity.x,jump_force,body.velocity.z);
+            body.AddForce(body.velocity.x, body.velocity.y + jump_force, body.velocity.z);
+        }
+    }
+
+    void FixedUpdate(){
+       
 
         //verificamos si la camara esta asociada al componente
         if(cam != null){
@@ -36,11 +48,7 @@ public class playerController : MonoBehaviour
             //si no hay una camara vinculada al personaje usaremos los ejes del mundo
             m_Move = v * Vector3.forward + h * Vector3.right;
         }
-        //Leemos la tacla espacio por si el jugador quiere saltar
-        if(Input.GetKeyDown(KeyCode.Space) && is_Grounded){
-            //body.velocity= new Vector3(body.velocity.x,jump_force,body.velocity.z);
-            body.AddForce(0,jump_force,0);
-        }
+        
         //enviamos el vector de movimiento a la funcion move
         Move(m_Move);
     }
@@ -58,7 +66,7 @@ public class playerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(move),Time.deltaTime*speedRotation);
         }
         CheckGroundStatus();
-        Debug.Log(is_Grounded);
+        
     }
 
     //Nos ayuda a validar si el jugador está en contacto con el piso
